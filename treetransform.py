@@ -3,26 +3,6 @@ import itertools
 import ttutils
 
 ####################################
-# Prerequisites:
-# - L4 file, from which we generate
-#   * GF grammar, with dynamically constructed lexicon
-#   * s(CASP) code: L4 rules and declarations translated into s(CASP) rules and facts
-# Pipeline:
-# - Generate the files in Haskell, on the client side.
-# - Create an expert system, and move the generated files to Docassemble server.
-# - Run the interview, get answers from user, and run a query.
-# - Query produces answers: a set of s(CASP) models. Parse those answers in Python.
-# - Initial transformation of the s(CASP) (Python) AST into GF trees.
-#   We need to match the s(CASP) statements in the answer (is_player(A)) to the GF funs (Player : Arg -> Statement).
-#   Orthographic restrictions:
-#   * L4 predicates and GF cats+funs can be anything
-#   * s(CASP) atoms must be lowercase and variables uppercase
-#   Maybe this needs to be addressed already when we generate the grammar. Make everything lowercase.
-# - TODO: figure out if someone else wants to take over the L4toSCASP translation. Does Martin have a normalised format that is easier to use in transformation?
-# - Tree transformations from GF trees to other GF trees.
-#   That's what I'm doing in this file. The rest of the pipeline depends on other people's work.
-
-####################################
 ## Dummy data for testing
 ## Real data is parsed from s(CASP) models
 
