@@ -7,10 +7,10 @@ import ttutils
 ## Real data is parsed from s(CASP) models
 
 # TODO: replace these with some good way to get the data
-gr = pgf.readPGF("/tmp/RPSTop.pgf")
-R = gr.embed("RPSTop")
+gr = pgf.readPGF("AnswerTop.pgf")
+R = gr.embed("AnswerTop")
 
-eng = gr.languages["RPSTopEng"]
+eng = gr.languages["AnswerTopEng"]
 
 aRock_cScissors = [
    "A wins RPS",
@@ -52,7 +52,10 @@ aPaper_cRock = [
 testCorpus = [aRock_cScissors, aScissors_cPaper, aPaper_cRock]
 
 def getExpr(sentence):
-    i = eng.parse(sentence)
+    try:
+        i = eng.parse(sentence)
+    except Exception:
+        raise Exception("getExpr: sentence not parsed: " + sentence)
     prob,expr = next(i)
     return expr
 
