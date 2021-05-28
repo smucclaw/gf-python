@@ -20,7 +20,36 @@ eng = gr.languages["AnswerTopEng"]
 responsefile = open('test-model.txt', 'r')
 responsetext = rp.annotate_indents(responsefile.read())
 
+
+print()
+
+def term2exp(term):
+    functor = term['functor']['base atom']
+    fun = pgf.readExpr(functor)
+    args = term2args(term['arguments'])
+    allArgs = args.insert(0, fun)
+    if len(args)==2:
+        return pgf.Expr("App1", args)
+    elif len(args)==3:
+        return pgf.Expr("App2", args)
+    else:
+        raise Exception("term2exp: expected unary or binary function, got" + yaml.dump(term))
+
+def term2args(arguments):
+    argExprs = []
+    for a in arguments:
+        print(a)
+        if 'variable' in a.keys():
+            varExpr = pgf.readExpr(a['variable'])
+            argExprs.append(varExpr)
+        if 'term' in a.keys():
+            fStr = a['term']['functor']['base atom']
+            atomExpr = pgf.readExpr(fStr)
+            argExprs.append(atomExpr)
+    return argExprs
+
 def constructPGFtrees(responsetext):
+    pgfExprs = []
     resp = rp.response.parseString(responsetext,True).asDict()
     answers = resp['answer set']
 
@@ -28,11 +57,15 @@ def constructPGFtrees(responsetext):
     # Future work: also construct trees from justifications
     models = [ans['model'] for ans in answers]
     for m in models:
-        m_ = yaml.dump(m)
-        print(m_)
-    # TODO
+        for t in m:
+            term = t['term']
+            exp = term2exp(term)
+            pgfExprs.append(exp)
+    return pgfExprs
 
-
+for exp in constructPGFtrees(responsetext):
+    l = eng.linearize(exp)
+    print(l)
 
 ####################################
 ## Translating the Haskell functions
