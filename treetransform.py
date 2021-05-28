@@ -120,7 +120,7 @@ def aggregateBySubject(exprs):
             pr1, pr2 = preds
             _, args = fullExpr.unpack()
             subjs = args[-1]
-            return R.AggregatePred(mkPred(pr1), mkPred(pr2), subjs)
+            return R.AggregatePred2(mkPred(pr1), mkPred(pr2), subjs)
         else:
             raise Exception("aggregateBySubject: expected 2 preds, got instead", show(preds))
     return aggregateBy(exprs, ttutils.getSubj, aggregate, name="Subject", debug=False)
