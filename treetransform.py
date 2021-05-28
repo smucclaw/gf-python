@@ -20,9 +20,6 @@ eng = gr.languages["AnswerTopEng"]
 responsefile = open('test-model.txt', 'r')
 responsetext = rp.annotate_indents(responsefile.read())
 
-
-print()
-
 def term2exp(term):
     functor = term['functor']['base atom']
     fun = pgf.readExpr(functor)
@@ -203,4 +200,7 @@ def nlgModels(models):
     ]
     return '\n'.join(result)
 
+#### Finally, test aggregation on parsed models
 
+if __name__=="__main__":
+    print(nlgModels(parseModels(responsetext)))
