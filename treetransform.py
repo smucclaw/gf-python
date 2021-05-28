@@ -38,9 +38,10 @@ def term2exp(term):
 def term2args(arguments):
     argExprs = []
     for a in arguments:
-        print(a)
         if 'variable' in a.keys():
-            varExpr = pgf.readExpr(a['variable'])
+            litStr = '"' + a['variable'] + '"' # needs to be in quotes to be parsed as literal
+            litExpr = pgf.readExpr(litStr)
+            varExpr = R.AVar(R.V(litExpr))
             argExprs.append(varExpr)
         if 'term' in a.keys():
             fStr = a['term']['functor']['base atom']
@@ -48,24 +49,28 @@ def term2args(arguments):
             argExprs.append(atomExpr)
     return argExprs
 
-def constructPGFtrees(responsetext):
-    pgfExprs = []
+def parseModels(responsetext):
+    models = []
     resp = rp.response.parseString(responsetext,True).asDict()
     answers = resp['answer set']
 
     # For now, we only read models.
     # Future work: also construct trees from justifications
-    models = [ans['model'] for ans in answers]
-    for m in models:
+    ms = [ans['model'] for ans in answers]
+    for m in ms:
+        pgfExprs = []
         for t in m:
             term = t['term']
             exp = term2exp(term)
             pgfExprs.append(exp)
-    return pgfExprs
+        models.append(pgfExprs)
+    return models
 
-for exp in constructPGFtrees(responsetext):
-    l = eng.linearize(exp)
-    print(l)
+for exps in parseModels(responsetext):
+    print("model:")
+    for exp in exps:
+        l = eng.linearize(exp)
+        print(l)
 
 ####################################
 ## Translating the Haskell functions
