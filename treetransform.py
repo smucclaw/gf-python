@@ -1,67 +1,38 @@
 import pgf
 import itertools
 import ttutils
+import responseparser as rp
+import yaml
 
 ####################################
-## Dummy data for testing
-## Real data is parsed from s(CASP) models
+## Parsing data from s(CASP) models
 
-# TODO: replace these with some good way to get the data
+# We assume that the PGF file, which is constructed in baby-l4,
+# is copied to be in the same directory, or otherwise hardcoded path.
+# The name of the grammar is also always the same.
 gr = pgf.readPGF("AnswerTop.pgf")
 R = gr.embed("AnswerTop")
 
 eng = gr.languages["AnswerTopEng"]
 
-aRock_cScissors = [
-   "A wins RPS",
-   "RPS is a game",
-   "A is a participant in RPS",
-   "A is a player",
-   "A throws rock",
-   "C is a player",
-   "C is a participant in RPS",
-   "C throws scissors",
-   "rock beats scissors",
-]
+### This file probably shouldn't be called test-model.txt and be in the same directory.
+## TODO: find out where to read the s(CASP) responses
+responsefile = open('test-model.txt', 'r')
+responsetext = rp.annotate_indents(responsefile.read())
 
-aScissors_cPaper = [
-   "A wins RPS",
-   "RPS is a game",
-   "A is a participant in RPS",
-   "A is a player",
-   "A throws scissors",
-   "C is a player",
-   "C is a participant in RPS",
-   "C throws paper",
-   "scissors beats paper",
-]
+def constructPGFtrees(responsetext):
+    resp = rp.response.parseString(responsetext,True).asDict()
+    answers = resp['answer set']
+
+    # For now, we only read models.
+    # Future work: also construct trees from justifications
+    models = [ans['model'] for ans in answers]
+    for m in models:
+        m_ = yaml.dump(m)
+        print(m_)
+    # TODO
 
 
-aPaper_cRock = [
-   "A wins RPS",
-   "RPS is a game",
-   "A is a participant in RPS",
-   "A is a player",
-   "A throws paper",
-   "C is a player",
-   "C is a participant in RPS",
-   "C throws rock",
-   "paper beats rock",
-]
-
-testCorpus = [aRock_cScissors, aScissors_cPaper, aPaper_cRock]
-
-def getExpr(sentence):
-    try:
-        i = eng.parse(sentence)
-    except Exception:
-        raise Exception("getExpr: sentence not parsed: " + sentence)
-    prob,expr = next(i)
-    return expr
-
-parsedTestCorpus = [
-    [getExpr(s) for s in model]
-    for model in testCorpus]
 
 ####################################
 ## Translating the Haskell functions
@@ -72,7 +43,7 @@ def aggregateBy(exprs,
                 name='',
                 debug=False):
     """Generic aggregation function"""
-    sortByShow = lambda e : ttutils.showExprs(sortf(e))
+    sortByShow = lambda e : show(sortf(e))
     results = []
     if debug:
         print("debug: aggregateBy"+name)
@@ -195,69 +166,3 @@ def nlgModels(models):
     return '\n'.join(result)
 
 
-
-###### Main
-
-if __name__ == "__main__":
-    print(type(parsedTestCorpus[0]))
-    print(nlgModels(parsedTestCorpus))
-
-
-################# TESTS #################
-## Some rudimentary tests.
-## TODO: use a real testing framework?
-
-def samePred(expr1, expr2):
-    e1p = ttutils.getPred(expr1)
-    e2p = ttutils.getPred(expr2)
-    return e1p == e2p
-samePredTrue = samePred(getExpr("A is a player"), getExpr("C is a player"))
-assert samePredTrue == True
-
-samePredFalse = samePred(getExpr("A is a player"), getExpr("C is a game"))
-assert samePredFalse == False
-
-def sameSubj(expr1, expr2):
-    e1s = ttutils.getSubj(expr1)
-    e2s = ttutils.getSubj(expr2)
-    return e1s == e2s
-
-sameSubjSimpleTrue = sameSubj(getExpr("A is a participant in RPS"), getExpr("A is a player"))
-assert sameSubjSimpleTrue == True
-
-sameSubjSimpleFalse = sameSubj(getExpr("A is a participant in RPS"), getExpr("B is a player"))
-assert sameSubjSimpleFalse == False
-
-sameSubjComplexTrue = sameSubj(getExpr("A and C are participants in RPS"), getExpr("A and C are players"))
-assert sameSubjComplexTrue == True
-
-sameSubjComplexFalse = sameSubj(getExpr("A and C are participants in RPS"), getExpr("A and B are players"))
-assert sameSubjComplexFalse == False
-
-
-def nlgSingleModel(model):
-    conclusion, evidence = model[0], model[1:]
-    firstAggr = aggregateByPredicate(evidence)
-    secondAggr = aggregateBySubject(firstAggr)
-    finalExpr = R.IfThen(conclusion, (wrapStatement(R.Bullets, secondAggr)))
-    return prettyLin(finalExpr)
-
-aRock_cScissors_gold = """A wins RPS if
-* A throws rock,
-* C throws scissors,
-* RPS is a game,
-* rock beats scissors and
-* A and C are players and participants in RPS"""
-
-# print(type(parsedTestCorpus))
-# print(type(parsedTestCorpus[0]))
-
-aRock_cScissors_system = nlgSingleModel(parsedTestCorpus[0])
-
-with open('/tmp/gold', 'w') as g:
-    g.write(aRock_cScissors_gold)
-with open('/tmp/system', 'w') as s:
-    s.write(aRock_cScissors_system)
-
-
-assert aRock_cScissors_system == aRock_cScissors_gold
