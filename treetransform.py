@@ -40,10 +40,12 @@ def term2args(arguments):
             litExpr = pgf.readExpr(litStr)
             varExpr = R.AVar(R.V(litExpr))
             argExprs.append(varExpr)
-        if 'term' in a.keys():
+        elif 'term' in a.keys():
             fStr = a['term']['functor']['base atom']
-            atomExpr = pgf.readExpr(fStr)
+            atomExpr = R.AAtom(pgf.readExpr(fStr))
             argExprs.append(atomExpr)
+        else:
+            raise Exception("term2args: expected dict with 'variable' or 'term', got instead" + a.keys())
     return argExprs
 
 def parseModels(responsetext):
@@ -62,12 +64,6 @@ def parseModels(responsetext):
             pgfExprs.append(exp)
         models.append(pgfExprs)
     return models
-
-for exps in parseModels(responsetext):
-    print("model:")
-    for exp in exps:
-        l = eng.linearize(exp)
-        print(l)
 
 ####################################
 ## Translating the Haskell functions
@@ -203,4 +199,13 @@ def nlgModels(models):
 #### Finally, test aggregation on parsed models
 
 if __name__=="__main__":
+    print("Original models")
+    for n, exps in zip([1,2,3], parseModels(responsetext)):
+        print("\nModel"),
+        print(n)
+        for exp in exps:
+            l = eng.linearize(exp)
+            print(l)
+
+    print("\n\nAggregation\n")
     print(nlgModels(parseModels(responsetext)))
