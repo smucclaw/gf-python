@@ -1,0 +1,34 @@
+QUERY:?- winner_of_game(jason,game).
+
+        ANSWER: 1 (in 0.091 ms)
+
+JUSTIFICATION_TREE:
+winner_of_game(jason,game),
+global_constraint.
+
+MODEL:
+{ win(A,RPS),  is_game(RPS),  is_participant_in(A,RPS),  is_player(A),  throw(A,rock), is_player(C),  is_participant_in(C,RPS),  throw(C,scissors),  beat(rock,scissors) }
+
+BINDINGS:
+
+        ANSWER: 2 (in 0.091 ms)
+
+JUSTIFICATION_TREE:
+winner_of_game(jason,game),
+global_constraint.
+
+MODEL:
+{ win(A,RPS),  is_game(RPS),  is_participant_in(A,RPS),  is_player(A),  throw(A,scissors),  is_player(C),  is_participant_in(C,RPS),  throw(C,paper),  beat(scissors,paper) }
+
+BINDINGS:
+
+        ANSWER: 3 (in 0.091 ms)
+
+JUSTIFICATION_TREE:
+winner_of_game(jason,game),
+global_constraint.
+
+MODEL:
+{ win(A,RPS),  is_game(RPS),  is_participant_in(A,RPS),  is_player(A),  throw(A,paper),  is_player(C),  is_participant_in(C,RPS),  throw(C,rock),  beat(paper,rock) }
+
+BINDINGS:
