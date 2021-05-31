@@ -9,7 +9,7 @@ setup(name='gf_python',
       license='',
       packages=['gf_python'],
       install_requires=['pgf',
-          'yaml',
+          'pyyaml',
           'pyparsing'
           ],
       zip_safe=False)
