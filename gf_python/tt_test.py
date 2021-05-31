@@ -1,5 +1,5 @@
-import treetransform as tt
-import ttutils
+import gf_python.treetransform as tt
+import gf_python.ttutils as ttutils
 
 #### Test data
 ## We parse these with the GF grammar

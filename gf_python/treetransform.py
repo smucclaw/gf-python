@@ -1,7 +1,7 @@
 import pgf
 import itertools
-import ttutils
-import responseparser as rp
+import gf_python.ttutils
+import gf_python.responseparser as rp
 import yaml
 
 ####################################

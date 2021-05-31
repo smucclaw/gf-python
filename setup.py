@@ -8,5 +8,8 @@ setup(name='gf_python',
       author_email='',
       license='',
       packages=['gf_python'],
-      install_requires=['pgf'],
+      install_requires=['pgf',
+          'yaml',
+          'pyparsing'
+          ],
       zip_safe=False)
