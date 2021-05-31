@@ -5,6 +5,11 @@ Utilities to work with GF trees from Python
 
 This repository will contain, in the future, code to do many more things.
 
+## Installation instructions
+
+1) Clone this repository
+2) `cd` into repository root, and run `pip install .`
+
 ## Tree transformation
 
 Modules: `treetransform.py` and `ttutils.py`
