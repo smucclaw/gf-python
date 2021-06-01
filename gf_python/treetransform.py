@@ -120,23 +120,17 @@ def aggregateBySubject(exprs):
             We want to sort them in a list so that all IntransPreds are before all TransPreds:
             [IntransPred(...), IntransPred(...), ..., TransPred(...), TransPred(...)]
         """
-        return preds #TODO: actual implementation
+        return listPred(preds) #TODO: actual implementation
 
     # Internal aggregate fun
     def aggregate(es):
         preds = [mkPred(ttutils.getPred(e)) for e in es]
         fullExpr = es[0] # we can take any expr from group, they all have same subject
-        if len(preds)==2: # GF grammar works for only two -- TODO make more generic!
-            pr1, pr2 = preds
+        if len(preds)>0:
             _, args = fullExpr.unpack()
             subjs = args[-1]
-            return R.AggregatePred2(pr1, pr2, subjs)
-        # Once the GF grammar is updated, switch to this:
-        # if len(preds)>0:
-        #     _, args = fullExpr.unpack()
-        #     subjs = args[-1]
-        #     transSortedPreds = sort_by_transitivity(preds)
-        #     return R.AggregatePred(transSortedPreds, subjs)
+            transSortedPreds = sort_by_transitivity(preds)
+            return R.AggregatePred(transSortedPreds, subjs)
         else:
             raise Exception("aggregateBySubject: expected 2 preds, got instead", show(preds))
     return aggregateBy(exprs, ttutils.getSubj, aggregate, name="Subject", debug=False)
