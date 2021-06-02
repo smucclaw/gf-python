@@ -1,7 +1,7 @@
 import pgf
 import itertools
-import gf_python.ttutils as ttutils
-import gf_python.responseparser as rp
+import ttutils as ttutils #import gf_python.ttutils as ttutils
+import responseparser as rp #import gf_python.responseparser as rp
 import yaml
 
 ####################################
@@ -111,16 +111,32 @@ def aggregateByPredicate(exprs):
 
     return aggregateBy(exprs, ttutils.getPred, aggregate, name="Predicate", debug=False)
 
+def sort_by_transitivity(preds):
+    """This takes preds like
+        R.TransPred(throw, rock)
+        R.IntransPred(is_player)
+        R.TransPred(beat, scissors)
+        We want to sort them in a list so that all IntransPreds are before all TransPreds:
+        [IntransPred(...), IntransPred(...), ..., TransPred(...), TransPred(...)]
+    """
+    transPred = []                   # initiate empty TransPred list
+    inTransPred = []                 # initiate empty InTransPred list
+
+    for item in preds:               # to iterate through each item in the entire list of preds
+        c, args = item.unpack()      # unpack to retrieve the c
+        if c == "TransPred":         # this is the analogous of atom.atype for predicates as type(gf item) will fail. Filter for type TransPred.
+            transPred.append(item)   # append to build a list of all TransPreds
+
+        elif c == "IntransPred":     # this is the analogous of atom.atype for predicates as type(gf item) will fail. Filter for type intransPred
+            inTransPred.append(item) # append to build a list of all intransPreds
+
+        else:
+            raise Exception ("expected predicates, got non-predicates instead", show(item))
+
+    return listPred(inTransPred + transPred) # aggregate into a sorted list of Preds [IntransPred(...), IntransPred(...), ..., TransPred(...), TransPred(...)]
+
+
 def aggregateBySubject(exprs):
-    def sort_by_transitivity(preds):
-        """This takes preds like
-            R.TransPred(throw, rock)
-            R.IntransPred(is_player)
-            R.TransPred(beat, scissors)
-            We want to sort them in a list so that all IntransPreds are before all TransPreds:
-            [IntransPred(...), IntransPred(...), ..., TransPred(...), TransPred(...)]
-        """
-        return listPred(preds) #TODO: actual implementation
 
     # Internal aggregate fun
     def aggregate(es):
@@ -162,6 +178,9 @@ def wrapStatement(typography, statements):
 
 def listArg(args):
     return ttutils.listGeneric(args, R.BaseArg, R.ConsArg)
+
+def listPred(args):
+    return ttutils.listGeneric(args, R.BasePred, R.ConsPred)
 
 def listStatement(args):
     return ttutils.listGeneric(args, R.BaseStatement, R.ConsStatement)
