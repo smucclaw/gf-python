@@ -1,7 +1,7 @@
 import pgf
 import itertools
-import ttutils as ttutils #import gf_python.ttutils as ttutils
-import responseparser as rp #import gf_python.responseparser as rp
+import ttutils as ttutils       #import gf_python.ttutils as ttutils
+import responseparser as rp     #import gf_python.responseparser as rp
 import yaml
 
 ####################################
@@ -17,10 +17,13 @@ eng = gr.languages["AnswerTopEng"]
 
 ### This file probably shouldn't be called test-model.txt and be in the same directory.
 ## TODO: find out where to read the s(CASP) responses
-responsefile = open('test-model.txt', 'r')
-responsetext = rp.annotate_indents(responsefile.read())
+responsefile = open('test-model.txt', 'r')                        # open the file that contains the possible outcomes
+responsetext = rp.annotate_indents(responsefile.read())           # apply the annotate_indents function in responseparser
 
 def term2exp(term):
+    """ Takes a term atom.
+        Return it as at transitive or intransitive expression.
+    """
     functor = term['functor']['base atom']
     fun = pgf.readExpr(functor)
     args = term2args(term['arguments'])
@@ -33,6 +36,9 @@ def term2exp(term):
         raise Exception("term2exp: expected unary or binary function, got" + yaml.dump(term))
 
 def term2args(arguments):
+    """ Takes a dictionary with keys 'variable' or 'term'.
+        Combine them into a list called argExprs.
+    """
     argExprs = []
     for a in arguments:
         if 'variable' in a.keys():
@@ -49,6 +55,10 @@ def term2args(arguments):
     return argExprs
 
 def parseModels(responsetext):
+    """ Takes all the possible responses.
+        Put them into lists.
+        Combine these lists into a list called models.
+    """
     models = []
     resp = rp.response.parseString(responsetext,True).asDict()
     answers = resp['answer set']
@@ -94,6 +104,10 @@ def aggregateBy(exprs,
     return results
 
 def aggregateByPredicate(exprs):
+    """ Takes all expressions.
+        Classify them into 2 groups --  transitive or intransitive.
+        Aggregate them by their groups.
+    """
     # internal aggregation fun
     def aggregate(es):
         subjs = [ttutils.getSubj(e) for e in es]
@@ -121,23 +135,26 @@ def sort_by_transitivity(preds):
     """
     transPred = []                   # initiate empty TransPred list
     inTransPred = []                 # initiate empty InTransPred list
-
     for item in preds:               # to iterate through each item in the entire list of preds
         c, args = item.unpack()      # unpack to retrieve the c
         if c == "TransPred":         # this is the analogous of atom.atype for predicates as type(gf item) will fail. Filter for type TransPred.
             transPred.append(item)   # append to build a list of all TransPreds
-
         elif c == "IntransPred":     # this is the analogous of atom.atype for predicates as type(gf item) will fail. Filter for type intransPred
             inTransPred.append(item) # append to build a list of all intransPreds
-
         else:
             raise Exception ("expected predicates, got non-predicates instead", show(item))
 
     return listPred(inTransPred + transPred) # aggregate into a sorted list of Preds [IntransPred(...), IntransPred(...), ..., TransPred(...), TransPred(...)]
 
 
-def aggregateBySubject(exprs):
-
+def aggregateBySubject(exprs):       
+    """ Takes all the expressions.
+        Make them into predicates.
+        Classify these predicates into transitive vs intransive.
+        Aggregate these classified predicates by subject.
+        [(Subject1: IntransPred(...), IntransPred(...), ..., TransPred(...), TransPred(...)),
+         (Subject2: IntransPred(...), IntransPred(...), ..., TransPred(...), TransPred(...)),...]
+    """
     # Internal aggregate fun
     def aggregate(es):
         preds = [mkPred(ttutils.getPred(e)) for e in es]
