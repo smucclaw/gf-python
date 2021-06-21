@@ -20,17 +20,40 @@ eng = gr.languages["AnswerTopEng"]
 responsefile = open('test-model.txt', 'r')
 responsetext = rp.annotate_indents(responsefile.read())
 
+def mkApp(args):
+    appExpr = []
+    if len(args)<1:
+        raise Exception("mkApp: too short list", args)
+    elif len(args)==2:
+        p, s = args
+        appExpr = [R.IntransPred(p), s]
+    elif len(args)==3:
+        p, s, o = args
+        appExpr = [R.TransPred(p,o), s]
+    else:
+        raise Exception("mkApp: too long", args)
+    return appExpr
+
 def term2exp(term):
     functor = term['functor']['base atom']
     fun = pgf.readExpr(functor)
     args = term2args(term['arguments'])
-    allArgs = args.insert(0, fun)
-    if len(args)==2:
+    args.insert(0, fun)
+    preds = mkPred(args)
+    # print("ho", show(args))
+    # print("hi",mkApp(args))
+    # print("boo",args)
+    # print("noo",term['arguments'])
+    # print (pgf.Expr("App", args))
+    # print (pgf.Expr("App preds"), preds)
+    if len(args)!=0:
+        return pgf.Expr("App", mkApp(args))
+    elif len(args)==2:
         return pgf.Expr("App1", args)
     elif len(args)==3:
         return pgf.Expr("App2", args)
     else:
-        raise Exception("term2exp: expected unary or binary function, got" + yaml.dump(term))
+       raise Exception("term2exp: expected unary or binary function, got" + yaml.dump(term))
 
 def term2args(arguments):
     argExprs = []
@@ -100,14 +123,17 @@ def aggregateByPredicate(exprs):
         fullExpr = es[0]
         aggrSubjs = listArg(subjs)
         c, args = fullExpr.unpack()
+        if c=="App":
+            pr, _ = args
+            return R.AggregateSubj(pr, aggrSubjs)
         if c=="App1":
             pr, _ = args
-            return R.AggregateSubj1(pr, aggrSubjs)
+            return R.AggregateSubj(pr, aggrSubjs)
         elif c=="App2":
             pr, _, obj = args
-            return R.AggregateSubj2(pr, obj, aggrSubjs)
+            return R.AggregateSubj(pr, obj, aggrSubjs)
         else:
-            raise Exception("aggregatebyPredicate: expected simple expr, got instead", show(fullExpr))
+            raise Exception("aggregatebyPredicate: expected simple expr, got instead" + show(fullExpr))
 
     return aggregateBy(exprs, ttutils.getPred, aggregate, name="Predicate", debug=False)
 
@@ -120,7 +146,8 @@ def aggregateBySubject(exprs):
             pr1, pr2 = preds
             _, args = fullExpr.unpack()
             subjs = args[-1]
-            return R.AggregatePred2(mkPred(pr1), mkPred(pr2), subjs)
+            print(pr1,pr2,subjs)
+            return R.AggregatePred((pr1), (pr2), subjs)
         else:
             raise Exception("aggregateBySubject: expected 2 preds, got instead", show(preds))
     return aggregateBy(exprs, ttutils.getSubj, aggregate, name="Subject", debug=False)

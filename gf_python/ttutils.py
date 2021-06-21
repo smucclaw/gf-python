@@ -14,28 +14,23 @@ def separateSubjPred(expr):
     except AttributeError:
         raise Exception("separateSubjPred: should be applied to pgf.Expr, was applied to", expr)
 
+
     ### Simple trees: subject is a single Expr
-    if c=="App1":
+    if c=="App":
         pred, subj = args
-        return (subj, [pred])
-    elif c=="App2":
-        pred, subj, obj = args
-        return (subj, [pred, obj])
+        return (subj, pred)
 
     ### Complex trees: subject is [Expr]
-    elif c=="AggregateSubj1":
+    elif c=="AggregateSubj":
         pred, subjs = args
-        return (subjs, [pred])
-    elif c=="AggregateSubj2":
-        pred, obj, subjs = args
-        return (subjs, [pred, obj])
-
+        return (subjs, pred)
+  
     ### Most complex trees: subject is [Expr], preds are special Pred, not a list of atoms and args anymore
     elif c=="AggregatePred":
         pr1, pr2, subjs = args
         return (subjs, [pr1, pr2])
     else:
-        raise Exception("separateSubjPred should be applied to a simple tree, got ", showExprs(expr))
+        raise Exception("separateSubjPred should be applied to a simple tree, got ", c, showExprs(expr))
 
 def getSubj(e):
     subj, _ = separateSubjPred(e)
